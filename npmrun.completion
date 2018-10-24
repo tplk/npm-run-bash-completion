@@ -1,0 +1,33 @@
+#!/bin/bash
+###-begin-npmrun-completion-###
+alias npmrun="npm run"
+
+setup_npm_scripts() {
+	local get_package_scripts="const path=require('path');let curPath=process.cwd(),shouldTraverse=!0,limit=20;const rootDir=curPath.split(path.sep)[0]+path.sep;function getScripts(){try{console.log(Object.keys(require(path.join(curPath,'package.json')).scripts).join(' ')),shouldTraverse=!1}catch(t){}}for(getScripts();shouldTraverse&&limit-- >0;)curPath=path.join(curPath,'/..'),shouldTraverse=curPath!==rootDir,getScripts();"
+
+	if hash node.exe 2>/dev/null; then
+		case "$(uname -s)" in
+			CYGWIN*|MINGW*|MSYS*)
+				alias _npm_scripts_print="node.exe -e \"$get_package_scripts\"";
+				;;
+			*)
+				alias _npm_scripts_print="node -e \"$get_package_scripts\"";
+				;;
+		esac
+	else
+		alias _npm_scripts_print="node -e \"$get_package_scripts\"";
+	fi
+}
+
+_npmrun_completion() {
+	local cur
+	_get_comp_words_by_ref -n : cur
+	opts=$( _npm_scripts_print )
+	COMPREPLY=( $(compgen -W "${opts}" -- $cur) )
+	__ltrim_colon_completions "$cur"
+}
+
+setup_npm_scripts
+
+complete -F _npmrun_completion npmrun
+###-end-npmrun-completion-###
